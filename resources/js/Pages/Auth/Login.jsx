@@ -1,17 +1,16 @@
 import { useEffect } from "react";
-import Checkbox from "@/Components/Checkbox";
 import GuestLayout from "@/Layouts/GuestLayout";
-import InputError from "@/Components/InputError";
-import InputLabel from "@/Components/InputLabel";
-import PrimaryButton from "@/Components/PrimaryButton";
-import TextInput from "@/Components/TextInput";
 import { Head, Link, useForm } from "@inertiajs/react";
+import { Form, Input, Button, Checkbox, Typography, message } from "antd";
+import { MailOutlined, LockOutlined } from "@ant-design/icons";
+
+const { Title } = Typography;
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: "",
         password: "",
-        remember: "",
+        remember: false,
     });
 
     useEffect(() => {
@@ -20,93 +19,127 @@ export default function Login({ status, canResetPassword }) {
         };
     }, []);
 
-    const handleOnChange = (event) => {
-        setData(
-            event.target.name,
-            event.target.type === "checkbox"
-                ? event.target.checked
-                : event.target.value
-        );
-    };
-
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route("login"));
+    const submit = () => {
+        post(route("login"), {
+            onSuccess: () => message.success("Login successful!"),
+        });
     };
 
     return (
         <GuestLayout>
             <Head title="Log in" />
-
-            {status && (
-                <div className="mb-4 font-medium text-sm text-green-600">
-                    {status}
-                </div>
-            )}
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
+            <div
+                style={{
+                    maxWidth: 400,
+                    margin: "40px auto",
+                    background: "#fff",
+                    padding: 32,
+                    borderRadius: 12,
+                    boxShadow: "0 2px 8px #f0f1f2",
+                }}
+            >
+                <Title level={2} style={{ textAlign: "center" }}>
+                    Log in
+                </Title>
+                {status && (
+                    <div
+                        style={{
+                            marginBottom: 16,
+                            color: "#52c41a",
+                            textAlign: "center",
+                        }}
+                    >
+                        {status}
+                    </div>
+                )}
+                <Form layout="vertical" onFinish={submit} initialValues={data}>
+                    <Form.Item
+                        label="Email"
                         name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        isFocused={true}
-                        onChange={handleOnChange}
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
-                        name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="current-password"
-                        onChange={handleOnChange}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="block mt-4">
-                    <label className="flex items-center">
-                        <Checkbox
-                            name="remember"
-                            value={data.remember}
-                            onChange={handleOnChange}
+                        rules={[
+                            {
+                                required: true,
+                                type: "email",
+                                message: "Please enter your email",
+                            },
+                        ]}
+                        validateStatus={errors.email ? "error" : ""}
+                        help={errors.email}
+                    >
+                        <Input
+                            prefix={<MailOutlined />}
+                            placeholder="Email"
+                            value={data.email}
+                            onChange={(e) => setData("email", e.target.value)}
+                            autoComplete="username"
                         />
-                        <span className="ml-2 text-sm text-gray-600">
-                            Remember me
-                        </span>
-                    </label>
-                </div>
-
-                <div className="flex items-center justify-end mt-4">
-                    {canResetPassword && (
-                        <Link
-                            href={route("password.request")}
-                            className="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    </Form.Item>
+                    <Form.Item
+                        label="Password"
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please enter your password",
+                            },
+                        ]}
+                        validateStatus={errors.password ? "error" : ""}
+                        help={errors.password}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Password"
+                            value={data.password}
+                            onChange={(e) =>
+                                setData("password", e.target.value)
+                            }
+                            autoComplete="current-password"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        name="remember"
+                        valuePropName="checked"
+                        style={{ marginBottom: 0 }}
+                    >
+                        <Checkbox
+                            checked={data.remember}
+                            onChange={(e) =>
+                                setData("remember", e.target.checked)
+                            }
                         >
-                            Forgot your password?
-                        </Link>
-                    )}
-
-                    <PrimaryButton className="ml-4" disabled={processing}>
-                        Log in
-                    </PrimaryButton>
+                            Remember me
+                        </Checkbox>
+                    </Form.Item>
+                    <div
+                        style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            marginBottom: 16,
+                        }}
+                    >
+                        {canResetPassword && (
+                            <Link href={route("password.request")}>
+                                Forgot your password?
+                            </Link>
+                        )}
+                    </div>
+                    <Form.Item>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            block
+                            loading={processing}
+                        >
+                            Log in
+                        </Button>
+                    </Form.Item>
+                </Form>
+                <div style={{ marginTop: 24, textAlign: "center" }}>
+                    <span>Don't have an account? </span>
+                    <Link href={route("register")}>Register</Link>
                 </div>
-            </form>
+            </div>
         </GuestLayout>
     );
 }

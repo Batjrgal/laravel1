@@ -1,8 +1,76 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head } from "@inertiajs/react";
+import { Table } from "antd";
+import "antd/dist/reset.css";
 
 export default function UserSalaryIndex({ auth, salaries }) {
     const formatCurrency = (amount) => `\u20ae${amount.toLocaleString()}`;
+
+    const statusFilters = Array.from(
+        new Set(salaries.map((s) => s.status))
+    ).map((status) => ({ text: status, value: status }));
+    const percentageFilters = Array.from(
+        new Set(salaries.map((s) => s.salary_percentage))
+    ).map((p) => ({ text: `${p}%`, value: p }));
+
+    const columns = [
+        {
+            title: "Total Price",
+            dataIndex: "total_price",
+            key: "total_price",
+            render: (total_price) => formatCurrency(total_price),
+            sorter: (a, b) => a.total_price - b.total_price,
+        },
+        {
+            title: "Base Price",
+            dataIndex: "base_price",
+            key: "base_price",
+            render: (base_price) => (
+                <span className="text-green-600 font-semibold">
+                    {formatCurrency(base_price)}
+                </span>
+            ),
+            sorter: (a, b) => a.base_price - b.base_price,
+        },
+        {
+            title: "Percentage",
+            dataIndex: "salary_percentage",
+            key: "salary_percentage",
+            render: (percentage) => `${percentage}%`,
+            sorter: (a, b) => a.salary_percentage - b.salary_percentage,
+            filters: percentageFilters,
+            onFilter: (value, record) => record.salary_percentage === value,
+        },
+        {
+            title: "Status",
+            dataIndex: "status",
+            key: "status",
+            render: (status) => (
+                <span
+                    className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        status === "Олгосон"
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                    }`}
+                >
+                    {status}
+                </span>
+            ),
+            filters: statusFilters,
+            onFilter: (value, record) => record.status === value,
+        },
+        {
+            title: "Date",
+            dataIndex: "created_at",
+            key: "created_at",
+            render: (created_at) => (
+                <span className="text-gray-500">
+                    {new Date(created_at).toLocaleDateString()}
+                </span>
+            ),
+            sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        },
+    ];
 
     return (
         <AuthenticatedLayout
@@ -21,75 +89,38 @@ export default function UserSalaryIndex({ auth, salaries }) {
                             <h3 className="text-lg font-semibold text-gray-900 mb-4">
                                 All My Salary Records
                             </h3>
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-gray-200">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Total Price
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Base Price
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Percentage
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Status
-                                            </th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Date
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-gray-200">
-                                        {salaries.length === 0 && (
-                                            <tr>
-                                                <td
-                                                    colSpan={5}
-                                                    className="text-center py-8 text-gray-500"
-                                                >
-                                                    No salary records found.
-                                                </td>
-                                            </tr>
-                                        )}
-                                        {salaries.map((salary) => (
-                                            <tr key={salary.id}>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {formatCurrency(
-                                                        salary.total_price
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-green-600 font-semibold">
-                                                    {formatCurrency(
-                                                        salary.base_price
-                                                    )}
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    {salary.salary_percentage}%
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span
-                                                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                                            salary.status ===
-                                                            "Олгосон"
-                                                                ? "bg-green-100 text-green-800"
-                                                                : "bg-red-100 text-red-800"
-                                                        }`}
-                                                    >
-                                                        {salary.status}
-                                                    </span>
-                                                </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-gray-500">
-                                                    {new Date(
-                                                        salary.created_at
-                                                    ).toLocaleDateString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <Table
+                                columns={columns}
+                                dataSource={salaries.map((s) => ({
+                                    ...s,
+                                    key: s.id,
+                                }))}
+                                pagination={{
+                                    defaultCurrent: 1,
+                                    defaultPageSize: 10,
+                                    showSizeChanger: true,
+                                    pageSizeOptions: [
+                                        "5",
+                                        "10",
+                                        "20",
+                                        "50",
+                                        "100",
+                                    ],
+                                }}
+                                locale={{
+                                    emptyText: "No salary records found.",
+                                }}
+                                scroll={{ x: true }}
+                                bordered
+                                size="middle"
+                                rowClassName={(_, idx) =>
+                                    idx % 2 === 0
+                                        ? "bg-white hover:bg-blue-50 transition"
+                                        : "bg-gray-50 hover:bg-blue-50 transition"
+                                }
+                                className="rounded-lg shadow overflow-x-auto"
+                                sticky
+                            />
                         </div>
                     </div>
                 </div>

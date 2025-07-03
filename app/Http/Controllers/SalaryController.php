@@ -6,6 +6,8 @@ use App\Models\Salary;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Notifications\SalaryPaidNotification;
+use App\Events\SalaryPaid;
 
 class SalaryController extends Controller
 {
@@ -94,6 +96,15 @@ class SalaryController extends Controller
             'updated_by' => $request->updated_by,
         ]);
 
+        // Send notification if status is 'Олгосон'
+        if ($request->status === 'Олгосон') {
+            // Notify only the employee whose salary was paid
+            $salary->user->notify(new SalaryPaidNotification($salary, $request->updated_by));
+            // Dispatch real-time event (optional, if you want real-time for this user)
+            $notification = $salary->user->notifications()->latest()->first();
+            event(new SalaryPaid($salary->user->id, [], $notification));
+        }
+
         return redirect()->route('admin.salary.index')
             ->with('message', 'Salary status updated successfully.');
     }
@@ -141,6 +152,19 @@ class SalaryController extends Controller
             'status' => $request->status,
             'updated_by' => $request->updated_by,
         ]);
+
+        // Send notification to each user if status is 'Олгосон'
+        if ($request->status === 'Олгосон') {
+            $salaries = Salary::with('user')->whereIn('id', $request->ids)->get();
+            foreach ($salaries as $salary) {
+                if ($salary->user) {
+                    $salary->user->notify(new SalaryPaidNotification($salary, $request->updated_by));
+                    // Dispatch real-time event (optional)
+                    $notification = $salary->user->notifications()->latest()->first();
+                    event(new SalaryPaid($salary->user->id, [], $notification));
+                }
+            }
+        }
 
         return redirect()->route('admin.salary.index')
             ->with('message', 'Selected salary statuses updated successfully.');

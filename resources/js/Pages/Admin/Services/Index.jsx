@@ -1,8 +1,9 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
-import { Table, Tag, Button, Space } from "antd";
+import { Table, Tag, Button, Space, message } from "antd";
 import "antd/dist/reset.css";
+import ActionButtons from "@/Components/ActionButtons";
 
 export default function ServicesIndex({ auth, services }) {
     const formatCurrency = (amount) => {
@@ -10,9 +11,14 @@ export default function ServicesIndex({ auth, services }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm("Are you sure you want to delete this service?")) {
-            router.delete(route("admin.services.destroy", id));
-        }
+        router.delete(route("admin.services.destroy", id), {
+            onSuccess: () => {
+                message.success("Service deleted successfully!");
+            },
+            onError: () => {
+                message.error("Failed to delete service.");
+            },
+        });
     };
 
     const carTypeFilters = [
@@ -58,31 +64,30 @@ export default function ServicesIndex({ auth, services }) {
             ),
         },
         {
-            title: "Created",
+            title: "Created At",
             dataIndex: "created_at",
             key: "created_at",
-            render: (created_at) => new Date(created_at).toLocaleDateString(),
+            render: (created_at) =>
+                created_at ? new Date(created_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        },
+        {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (updated_at) =>
+                updated_at ? new Date(updated_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
         },
         {
             title: "Actions",
             key: "actions",
             render: (_, service) => (
-                <Space>
-                    <Link
-                        href={route("admin.services.edit", service.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                    >
-                        Edit
-                    </Link>
-                    <Button
-                        danger
-                        type="link"
-                        onClick={() => handleDelete(service.id)}
-                        style={{ padding: 0 }}
-                    >
-                        Delete
-                    </Button>
-                </Space>
+                <ActionButtons
+                    editHref={route("admin.services.edit", service.id)}
+                    onDelete={() => handleDelete(service.id)}
+                    deleteConfirm="Are you sure you want to delete this service?"
+                />
             ),
         },
     ];
@@ -132,6 +137,15 @@ export default function ServicesIndex({ auth, services }) {
                                 }}
                                 locale={{ emptyText: "No services found." }}
                                 scroll={{ x: true }}
+                                bordered
+                                size="middle"
+                                rowClassName={(_, idx) =>
+                                    idx % 2 === 0
+                                        ? "bg-white hover:bg-blue-50 transition"
+                                        : "bg-gray-50 hover:bg-blue-50 transition"
+                                }
+                                className="rounded-lg shadow overflow-x-auto"
+                                sticky
                             />
                         </div>
                     </div>

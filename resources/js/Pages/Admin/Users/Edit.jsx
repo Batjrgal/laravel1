@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Edit({ auth, user }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -19,7 +20,14 @@ export default function Edit({ auth, user }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("admin.users.update", user.id));
+        put(route("admin.users.update", user.id), {
+            onSuccess: () => {
+                message.success("User updated successfully!");
+            },
+            onError: () => {
+                message.error("Failed to update user. Please check the form.");
+            },
+        });
     };
 
     return (

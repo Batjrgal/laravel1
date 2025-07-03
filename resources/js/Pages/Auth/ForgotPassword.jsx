@@ -1,54 +1,99 @@
-import GuestLayout from '@/Layouts/GuestLayout';
-import InputError from '@/Components/InputError';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Head, useForm } from '@inertiajs/react';
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head } from "@inertiajs/react";
+import { Form, Input, Button, Typography, message } from "antd";
+import { MailOutlined } from "@ant-design/icons";
+import { useState } from "react";
+import { router } from "@inertiajs/react";
+
+const { Title } = Typography;
 
 export default function ForgotPassword({ status }) {
-    const { data, setData, post, processing, errors } = useForm({
-        email: '',
-    });
+    const [form] = Form.useForm();
+    const [data, setData] = useState({ email: "" });
+    const [errors, setErrors] = useState({});
 
-    const onHandleChange = (event) => {
-        setData(event.target.name, event.target.value);
-    };
-
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route('password.email'));
+    const submit = (values) => {
+        router.post(route("password.email"), values, {
+            onSuccess: () => message.success("Password reset link sent!"),
+            onError: (err) => setErrors(err),
+        });
     };
 
     return (
         <GuestLayout>
             <Head title="Forgot Password" />
-
-            <div className="mb-4 text-sm text-gray-600">
-                Forgot your password? No problem. Just let us know your email address and we will email you a password
-                reset link that will allow you to choose a new one.
-            </div>
-
-            {status && <div className="mb-4 font-medium text-sm text-green-600">{status}</div>}
-
-            <form onSubmit={submit}>
-                <TextInput
-                    id="email"
-                    type="email"
-                    name="email"
-                    value={data.email}
-                    className="mt-1 block w-full"
-                    isFocused={true}
-                    onChange={onHandleChange}
-                />
-
-                <InputError message={errors.email} className="mt-2" />
-
-                <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ml-4" disabled={processing}>
-                        Email Password Reset Link
-                    </PrimaryButton>
+            <div
+                style={{
+                    maxWidth: 400,
+                    margin: "40px auto",
+                    background: "#fff",
+                    padding: 32,
+                    borderRadius: 12,
+                    boxShadow: "0 2px 8px #f0f1f2",
+                }}
+            >
+                <Title level={2} style={{ textAlign: "center" }}>
+                    Forgot Password
+                </Title>
+                <div
+                    style={{
+                        marginBottom: 16,
+                        color: "#888",
+                        textAlign: "center",
+                    }}
+                >
+                    Forgot your password? No problem. Just let us know your
+                    email address and we will email you a password reset link
+                    that will allow you to choose a new one.
                 </div>
-            </form>
+                {status && (
+                    <div
+                        style={{
+                            marginBottom: 16,
+                            color: "#52c41a",
+                            textAlign: "center",
+                        }}
+                    >
+                        {status}
+                    </div>
+                )}
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={submit}
+                    initialValues={data}
+                >
+                    <Form.Item
+                        label="Email"
+                        name="email"
+                        rules={[
+                            {
+                                required: true,
+                                type: "email",
+                                message: "Please enter your email",
+                            },
+                        ]}
+                        validateStatus={errors.email ? "error" : ""}
+                        help={errors.email}
+                    >
+                        <Input
+                            prefix={<MailOutlined />}
+                            placeholder="Email"
+                            value={data.email}
+                            onChange={(e) =>
+                                setData({ ...data, email: e.target.value })
+                            }
+                            autoComplete="username"
+                        />
+                    </Form.Item>
+
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block>
+                            Email Password Reset Link
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </div>
         </GuestLayout>
     );
 }

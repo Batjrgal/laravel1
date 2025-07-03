@@ -1,10 +1,20 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
-import { Table, Tag, Button, Space, Modal, InputNumber } from "antd";
+import {
+    Table,
+    Tag,
+    Button,
+    Space,
+    Modal,
+    InputNumber,
+    Popconfirm,
+    message,
+} from "antd";
 import "antd/dist/reset.css";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
+import ActionButtons from "@/Components/ActionButtons";
 
 export default function SalaryIndex({ auth, salaries, users }) {
     const [globalPercentage, setGlobalPercentage] = useState(50);
@@ -13,6 +23,11 @@ export default function SalaryIndex({ auth, salaries, users }) {
     const [batchLoading, setBatchLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalValue, setModalValue] = useState(globalPercentage);
+    const [openTour, setOpenTour] = useState(false);
+    const batchPaidRef = useRef(null);
+    const batchUnpaidRef = useRef(null);
+    const tableRef = useRef(null);
+    const updatePercentRef = useRef(null);
 
     useEffect(() => {
         axios.get(route("admin.settings.salaryPercentage.get")).then((res) => {
@@ -31,10 +46,15 @@ export default function SalaryIndex({ auth, salaries, users }) {
     const handleModalOk = async () => {
         if (modalValue < 0 || modalValue > 100) return;
         setLoading(true);
-        await axios.post(route("admin.settings.salaryPercentage.update"), {
-            salary_percentage: parseInt(modalValue),
-        });
-        setGlobalPercentage(parseInt(modalValue));
+        try {
+            await axios.post(route("admin.settings.salaryPercentage.update"), {
+                salary_percentage: parseInt(modalValue),
+            });
+            setGlobalPercentage(parseInt(modalValue));
+            message.success("Salary percentage updated successfully!");
+        } catch (error) {
+            message.error("Failed to update salary percentage.");
+        }
         setLoading(false);
         setIsModalOpen(false);
     };
@@ -48,9 +68,14 @@ export default function SalaryIndex({ auth, salaries, users }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm("Are you sure you want to delete this salary record?")) {
-            router.delete(route("admin.salary.destroy", id));
-        }
+        router.delete(route("admin.salary.destroy", id), {
+            onSuccess: () => {
+                message.success("Salary record deleted successfully!");
+            },
+            onError: () => {
+                message.error("Failed to delete salary record.");
+            },
+        });
     };
 
     const updateStatus = (salaryId, newStatus) => {
@@ -61,7 +86,15 @@ export default function SalaryIndex({ auth, salaries, users }) {
                 updated_by: auth.user.name,
             },
             {
-                onSuccess: () => router.reload({ only: ["salaries"] }),
+                onSuccess: () => {
+                    router.reload({ only: ["salaries"] });
+                    message.success(
+                        `Status updated to ${newStatus} successfully!`
+                    );
+                },
+                onError: () => {
+                    message.error("Failed to update status.");
+                },
             }
         );
     };
@@ -125,34 +158,62 @@ export default function SalaryIndex({ auth, salaries, users }) {
             ),
         },
         {
+            title: "Updated By",
+            dataIndex: "updated_by",
+            key: "updated_by",
+            render: (updated_by) => updated_by || "-",
+            filters: Array.from(
+                new Set(salaryData.map((s) => s.updated_by).filter(Boolean))
+            ).map((name) => ({ text: name, value: name })),
+            onFilter: (value, record) => record.updated_by === value,
+        },
+        {
+            title: "Created At",
+            dataIndex: "created_at",
+            key: "created_at",
+            render: (created_at) =>
+                created_at ? new Date(created_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        },
+        {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (updated_at) =>
+                updated_at ? new Date(updated_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
+        },
+        {
             title: "Actions",
             key: "actions",
             render: (_, salary) => (
-                <Space>
-                    <Button
-                        type="link"
-                        onClick={() =>
-                            updateStatus(
-                                salary.id,
-                                salary.status === "Олгосон"
-                                    ? "Олгоогүй"
-                                    : "Олгосон"
-                            )
-                        }
-                    >
-                        {salary.status === "Олгосон"
-                            ? "Mark Unpaid"
-                            : "Mark Paid"}
-                    </Button>
-                    <Button
-                        danger
-                        type="link"
-                        onClick={() => handleDelete(salary.id)}
-                        style={{ padding: 0 }}
-                    >
-                        Delete
-                    </Button>
-                </Space>
+                <ActionButtons
+                    onDelete={() => handleDelete(salary.id)}
+                    deleteConfirm="Are you sure you want to delete this salary record?"
+                    extraActions={
+                        <Popconfirm
+                            title={`Are you sure you want to mark this as ${
+                                salary.status === "Олгосон" ? "Unpaid" : "Paid"
+                            }?`}
+                            onConfirm={() =>
+                                updateStatus(
+                                    salary.id,
+                                    salary.status === "Олгосон"
+                                        ? "Олгоогүй"
+                                        : "Олгосон"
+                                )
+                            }
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button type="link">
+                                {salary.status === "Олгосон"
+                                    ? "Unpaid"
+                                    : "Paid"}
+                            </Button>
+                        </Popconfirm>
+                    }
+                />
             ),
         },
     ];
@@ -165,11 +226,18 @@ export default function SalaryIndex({ auth, salaries, users }) {
     const batchUpdateStatus = async (newStatus) => {
         if (selectedRowKeys.length === 0) return;
         setBatchLoading(true);
-        await axios.post(route("admin.salary.batchUpdateStatus"), {
-            ids: selectedRowKeys,
-            status: newStatus,
-            updated_by: auth.user.name,
-        });
+        try {
+            await axios.post(route("admin.salary.batchUpdateStatus"), {
+                ids: selectedRowKeys,
+                status: newStatus,
+                updated_by: auth.user.name,
+            });
+            message.success(
+                `Batch status updated to ${newStatus} successfully!`
+            );
+        } catch (error) {
+            message.error("Failed to update batch status.");
+        }
         setBatchLoading(false);
         setSelectedRowKeys([]);
         router.reload({ only: ["salaries"] });
@@ -202,6 +270,7 @@ export default function SalaryIndex({ auth, salaries, users }) {
                                 </h3>
                                 <div className="flex flex-wrap gap-2 w-full sm:w-auto mt-2 sm:mt-0">
                                     <Button
+                                        ref={batchPaidRef}
                                         onClick={() =>
                                             batchUpdateStatus("Олгосон")
                                         }
@@ -214,6 +283,7 @@ export default function SalaryIndex({ auth, salaries, users }) {
                                         Mark Selected Paid
                                     </Button>
                                     <Button
+                                        ref={batchUnpaidRef}
                                         onClick={() =>
                                             batchUpdateStatus("Олгоогүй")
                                         }
@@ -226,6 +296,7 @@ export default function SalaryIndex({ auth, salaries, users }) {
                                         Mark Selected Unpaid
                                     </Button>
                                     <Button
+                                        ref={updatePercentRef}
                                         onClick={showModal}
                                         type="dashed"
                                         loading={loading}
@@ -238,25 +309,42 @@ export default function SalaryIndex({ auth, salaries, users }) {
                                     </Button>
                                 </div>
                             </div>
-                            <Table
-                                rowSelection={rowSelection}
-                                columns={columns}
-                                dataSource={salaryData.map((s) => ({
-                                    ...s,
-                                    key: s.id,
-                                    percentage: s.salary_percentage,
-                                }))}
-                                pagination={{
-                                    pageSize: 10,
-                                    showSizeChanger: true,
-                                    pageSizeOptions: [5, 10, 20, 50, 100],
-                                }}
-                                locale={{
-                                    emptyText: "No salary records found.",
-                                }}
-                                scroll={{ x: true }}
-                                className="overflow-x-auto"
-                            />
+                            <div ref={tableRef}>
+                                <Table
+                                    rowSelection={rowSelection}
+                                    columns={columns}
+                                    dataSource={salaryData.map((s) => ({
+                                        ...s,
+                                        key: s.id,
+                                        percentage: s.salary_percentage,
+                                    }))}
+                                    pagination={{
+                                        defaultCurrent: 1,
+                                        defaultPageSize: 10,
+                                        showSizeChanger: true,
+                                        pageSizeOptions: [
+                                            "5",
+                                            "10",
+                                            "20",
+                                            "50",
+                                            "100",
+                                        ],
+                                    }}
+                                    locale={{
+                                        emptyText: "No salary records found.",
+                                    }}
+                                    scroll={{ x: true }}
+                                    bordered
+                                    size="middle"
+                                    rowClassName={(_, idx) =>
+                                        idx % 2 === 0
+                                            ? "bg-white hover:bg-blue-50 transition"
+                                            : "bg-gray-50 hover:bg-blue-50 transition"
+                                    }
+                                    className="rounded-lg shadow overflow-x-auto"
+                                    sticky
+                                />
+                            </div>
                             <Modal
                                 title="Update Salary Percentage"
                                 open={isModalOpen}

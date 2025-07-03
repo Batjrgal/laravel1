@@ -1,14 +1,20 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
-import { Table, Tag, Button, Space } from "antd";
+import { Table, Tag, Button, Space, message } from "antd";
 import "antd/dist/reset.css";
+import ActionButtons from "@/Components/ActionButtons";
 
 export default function UsersIndex({ auth, users }) {
     const handleDelete = (id) => {
-        if (confirm("Are you sure you want to delete this user?")) {
-            router.delete(route("admin.users.destroy", id));
-        }
+        router.delete(route("admin.users.destroy", id), {
+            onSuccess: () => {
+                message.success("User deleted successfully!");
+            },
+            onError: () => {
+                message.error("Failed to delete user.");
+            },
+        });
     };
 
     const roleFilters = Array.from(new Set(users.map((u) => u.role))).map(
@@ -70,8 +76,6 @@ export default function UsersIndex({ auth, users }) {
                     color={
                         role === "Admin"
                             ? "red"
-                            : role === "Manager"
-                            ? "blue"
                             : role === "Employee"
                             ? "green"
                             : "default"
@@ -94,32 +98,27 @@ export default function UsersIndex({ auth, users }) {
             ),
         },
         {
-            title: "Created",
+            title: "Created At",
             dataIndex: "created_at",
             key: "created_at",
+            render: (created_at) =>
+                created_at ? new Date(created_at).toLocaleDateString() : "-",
             sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
-            render: (created_at) => new Date(created_at).toLocaleDateString(),
         },
         {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (updated_at) =>
+                updated_at ? new Date(updated_at).toLocaleDateString() : "-",
             title: "Actions",
             key: "actions",
             render: (_, user) => (
-                <Space>
-                    <Link
-                        href={route("admin.users.edit", user.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                    >
-                        Edit
-                    </Link>
-                    <Button
-                        danger
-                        type="link"
-                        onClick={() => handleDelete(user.id)}
-                        style={{ padding: 0 }}
-                    >
-                        Delete
-                    </Button>
-                </Space>
+                <ActionButtons
+                    editHref={route("admin.users.edit", user.id)}
+                    onDelete={() => handleDelete(user.id)}
+                    deleteConfirm="Are you sure you want to delete this user?"
+                />
             ),
         },
     ];
@@ -169,6 +168,15 @@ export default function UsersIndex({ auth, users }) {
                                 }}
                                 locale={{ emptyText: "No users found." }}
                                 scroll={{ x: true }}
+                                bordered
+                                size="middle"
+                                rowClassName={(_, idx) =>
+                                    idx % 2 === 0
+                                        ? "bg-white hover:bg-blue-50 transition"
+                                        : "bg-gray-50 hover:bg-blue-50 transition"
+                                }
+                                className="rounded-lg shadow overflow-x-auto"
+                                sticky
                             />
                         </div>
                     </div>

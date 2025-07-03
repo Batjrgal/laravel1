@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Create({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -19,7 +20,14 @@ export default function Create({ auth }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("admin.users.store"));
+        post(route("admin.users.store"), {
+            onSuccess: () => {
+                message.success("User created successfully!");
+            },
+            onError: () => {
+                message.error("Failed to create user. Please check the form.");
+            },
+        });
     };
 
     return (

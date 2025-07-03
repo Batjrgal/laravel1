@@ -3,7 +3,13 @@ import { Head } from "@inertiajs/react";
 
 export default function UserDashboard({ auth, stats }) {
     const formatCurrency = (amount) => {
-        return `₮${amount.toLocaleString()}`;
+        if (amount >= 1000000) {
+            return `₮${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+            return `₮${(amount / 1000).toFixed(1)}K`;
+        } else {
+            return `₮${amount.toLocaleString()}`;
+        }
     };
 
     return (
@@ -17,32 +23,33 @@ export default function UserDashboard({ auth, stats }) {
         >
             <Head title="My Dashboard" />
 
-            <div className="py-12">
+            <div className="py-12 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {/* Welcome Message */}
-                    <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-8">
-                        <div className="p-6">
-                            <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {/* Welcome Banner */}
+                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl shadow-xl mb-8 overflow-hidden relative">
+                        <div className="p-8 text-white">
+                            <h1 className="text-3xl font-bold mb-2">
                                 Welcome back,{" "}
                                 {auth.user.full_name || auth.user.name}!
-                            </h3>
-                            <p className="text-gray-600">
+                            </h1>
+                            <p className="text-blue-100 text-lg">
                                 Here's your performance overview and earnings
                                 summary.
                             </p>
                         </div>
+                        {/* <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div> */}
                     </div>
 
                     {/* Statistics Cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         {/* Today's Jobs */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
                                             <svg
-                                                className="w-5 h-5 text-white"
+                                                className="w-6 h-6 text-white"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -60,22 +67,21 @@ export default function UserDashboard({ auth, stats }) {
                                         <p className="text-sm font-medium text-gray-500">
                                             Today's Jobs
                                         </p>
-                                        <p className="text-2xl font-semibold text-gray-900">
+                                        <p className="text-3xl font-bold text-gray-900">
                                             {stats.today_my_jobs}
                                         </p>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                         {/* Today's Salary */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-xl flex items-center justify-center">
                                             <svg
-                                                className="w-5 h-5 text-white"
+                                                className="w-6 h-6 text-white"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -93,7 +99,7 @@ export default function UserDashboard({ auth, stats }) {
                                         <p className="text-sm font-medium text-gray-500">
                                             Today's Salary
                                         </p>
-                                        <p className="text-2xl font-semibold text-gray-900">
+                                        <p className="text-3xl font-bold text-gray-900">
                                             {formatCurrency(
                                                 stats.my_salary_today
                                             )}
@@ -102,15 +108,14 @@ export default function UserDashboard({ auth, stats }) {
                                 </div>
                             </div>
                         </div>
-
                         {/* This Week's Salary */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-purple-500 rounded-md flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
                                             <svg
-                                                className="w-5 h-5 text-white"
+                                                className="w-6 h-6 text-white"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -128,7 +133,7 @@ export default function UserDashboard({ auth, stats }) {
                                         <p className="text-sm font-medium text-gray-500">
                                             This Week
                                         </p>
-                                        <p className="text-2xl font-semibold text-gray-900">
+                                        <p className="text-3xl font-bold text-gray-900">
                                             {formatCurrency(
                                                 stats.my_salary_week
                                             )}
@@ -137,15 +142,14 @@ export default function UserDashboard({ auth, stats }) {
                                 </div>
                             </div>
                         </div>
-
                         {/* This Month's Salary */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                        <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
                             <div className="p-6">
                                 <div className="flex items-center">
                                     <div className="flex-shrink-0">
-                                        <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
+                                        <div className="w-12 h-12 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center">
                                             <svg
-                                                className="w-5 h-5 text-white"
+                                                className="w-6 h-6 text-white"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 viewBox="0 0 24 24"
@@ -163,7 +167,7 @@ export default function UserDashboard({ auth, stats }) {
                                         <p className="text-sm font-medium text-gray-500">
                                             This Month
                                         </p>
-                                        <p className="text-2xl font-semibold text-gray-900">
+                                        <p className="text-3xl font-bold text-gray-900">
                                             {formatCurrency(
                                                 stats.my_salary_month
                                             )}
@@ -175,93 +179,102 @@ export default function UserDashboard({ auth, stats }) {
                     </div>
 
                     {/* Salary Overview and Top Users */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Salary Overview */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                            <div className="p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    My Salary Overview
-                                </h3>
-                                <div className="space-y-4">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
+                        <div className="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-6">
+                                My Salary Overview
+                            </h3>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-xl">
+                                    <div>
+                                        <span className="text-gray-600 font-medium">
                                             This Year
                                         </span>
-                                        <span className="font-semibold text-green-600">
-                                            {formatCurrency(
-                                                stats.my_salary_year
-                                            )}
-                                        </span>
+                                        <p className="text-sm text-gray-500">
+                                            Total annual salary
+                                        </p>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
+                                    <span className="text-2xl font-bold text-green-600">
+                                        {formatCurrency(stats.my_salary_year)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl">
+                                    <div>
+                                        <span className="text-gray-600 font-medium">
                                             This Month
                                         </span>
-                                        <span className="font-semibold text-blue-600">
-                                            {formatCurrency(
-                                                stats.my_salary_month
-                                            )}
-                                        </span>
+                                        <p className="text-sm text-gray-500">
+                                            Current month salary
+                                        </p>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
+                                    <span className="text-2xl font-bold text-blue-600">
+                                        {formatCurrency(stats.my_salary_month)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl">
+                                    <div>
+                                        <span className="text-gray-600 font-medium">
                                             This Week
                                         </span>
-                                        <span className="font-semibold text-purple-600">
-                                            {formatCurrency(
-                                                stats.my_salary_week
-                                            )}
-                                        </span>
+                                        <p className="text-sm text-gray-500">
+                                            Weekly salary
+                                        </p>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-gray-600">
+                                    <span className="text-2xl font-bold text-purple-600">
+                                        {formatCurrency(stats.my_salary_week)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl">
+                                    <div>
+                                        <span className="text-gray-600 font-medium">
                                             Today
                                         </span>
-                                        <span className="font-semibold text-orange-600">
-                                            {formatCurrency(
-                                                stats.my_salary_today
-                                            )}
-                                        </span>
+                                        <p className="text-sm text-gray-500">
+                                            Daily salary
+                                        </p>
                                     </div>
+                                    <span className="text-2xl font-bold text-orange-600">
+                                        {formatCurrency(stats.my_salary_today)}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Top Users */}
-                        <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                            <div className="p-6">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                                    Top Performers
-                                </h3>
-                                <div className="space-y-3">
-                                    {stats.top_users.map((user, index) => (
-                                        <div
-                                            key={user.id}
-                                            className="flex items-center justify-between"
-                                        >
-                                            <div className="flex items-center">
-                                                <span className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-sm font-medium text-gray-700 mr-3">
-                                                    {index + 1}
-                                                </span>
-                                                <div>
-                                                    <p className="font-medium text-gray-900">
-                                                        {user.full_name ||
-                                                            user.name}
-                                                    </p>
-                                                    <p className="text-sm text-gray-500">
-                                                        {formatCurrency(
-                                                            user.salaries_sum_base_price ||
-                                                                0
-                                                        )}
-                                                    </p>
-                                                </div>
+                        {/* Top Performers */}
+                        <div className="bg-white rounded-2xl shadow-lg p-6">
+                            <h3 className="text-xl font-bold text-gray-900 mb-6">
+                                Top Performers
+                            </h3>
+                            <div className="space-y-4">
+                                {stats.top_users.map((user, index) => (
+                                    <div
+                                        key={user.id}
+                                        className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
+                                    >
+                                        <div className="flex items-center">
+                                            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold mr-4">
+                                                {index + 1}
                                             </div>
+                                            <div>
+                                                <p className="font-semibold text-gray-900">
+                                                    {user.full_name ||
+                                                        user.name}
+                                                </p>
+                                                <p className="text-sm text-gray-500">
+                                                    {formatCurrency(
+                                                        user.salaries_sum_base_price ||
+                                                            0
+                                                    )}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
                                             <span className="text-sm font-medium text-gray-500">
                                                 {user.role}
                                             </span>
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

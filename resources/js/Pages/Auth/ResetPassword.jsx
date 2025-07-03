@@ -1,94 +1,115 @@
-import { useEffect } from 'react';
-import GuestLayout from '@/Layouts/GuestLayout';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Head, useForm } from '@inertiajs/react';
+import { useEffect } from "react";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head } from "@inertiajs/react";
+import { Form, Input, Button, Typography, message } from "antd";
+
+const { Title } = Typography;
 
 export default function ResetPassword({ token, email }) {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        token: token,
-        email: email,
-        password: '',
-        password_confirmation: '',
-    });
+    const [form] = Form.useForm();
 
     useEffect(() => {
         return () => {
-            reset('password', 'password_confirmation');
+            form.resetFields(["password", "password_confirmation"]);
         };
     }, []);
 
-    const onHandleChange = (event) => {
-        setData(event.target.name, event.target.value);
-    };
-
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route('password.store'));
+    const submit = (values) => {
+        window.Inertia.post(
+            route("password.store"),
+            { ...values, token, email },
+            {
+                onSuccess: () => message.success("Password reset successful!"),
+            }
+        );
     };
 
     return (
         <GuestLayout>
             <Head title="Reset Password" />
-
-            <form onSubmit={submit}>
-                <div>
-                    <InputLabel htmlFor="email" value="Email" />
-
-                    <TextInput
-                        id="email"
-                        type="email"
+            <div
+                style={{
+                    maxWidth: 400,
+                    margin: "40px auto",
+                    background: "#fff",
+                    padding: 32,
+                    borderRadius: 12,
+                    boxShadow: "0 2px 8px #f0f1f2",
+                }}
+            >
+                <Title level={2} style={{ textAlign: "center" }}>
+                    Reset Password
+                </Title>
+                <Form
+                    form={form}
+                    layout="vertical"
+                    onFinish={submit}
+                    initialValues={{ email }}
+                >
+                    <Form.Item
+                        label="Email"
                         name="email"
-                        value={data.email}
-                        className="mt-1 block w-full"
-                        autoComplete="username"
-                        onChange={onHandleChange}
-                    />
-
-                    <InputError message={errors.email} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
+                        rules={[
+                            {
+                                required: true,
+                                type: "email",
+                                message: "Please enter your email",
+                            },
+                        ]}
+                    >
+                        <Input placeholder="Email" autoComplete="username" />
+                    </Form.Item>
+                    <Form.Item
+                        label="Password"
                         name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        isFocused={true}
-                        onChange={onHandleChange}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="mt-4">
-                    <InputLabel htmlFor="password_confirmation" value="Confirm Password" />
-
-                    <TextInput
-                        type="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please enter your password",
+                            },
+                        ]}
+                    >
+                        <Input.Password
+                            placeholder="Password"
+                            autoComplete="new-password"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Confirm Password"
                         name="password_confirmation"
-                        value={data.password_confirmation}
-                        className="mt-1 block w-full"
-                        autoComplete="new-password"
-                        onChange={onHandleChange}
-                    />
-
-                    <InputError message={errors.password_confirmation} className="mt-2" />
-                </div>
-
-                <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ml-4" disabled={processing}>
-                        Reset Password
-                    </PrimaryButton>
-                </div>
-            </form>
+                        dependencies={["password"]}
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please confirm your password",
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (
+                                        !value ||
+                                        getFieldValue("password") === value
+                                    ) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject(
+                                        new Error("Passwords do not match!")
+                                    );
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password
+                            placeholder="Confirm Password"
+                            autoComplete="new-password"
+                        />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block>
+                            Reset Password
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </div>
         </GuestLayout>
     );
 }

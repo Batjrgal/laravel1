@@ -54,7 +54,7 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
 });
 
 // User routes
-Route::middleware(['auth', 'verified'])->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth', 'verified', 'employee'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserController::class, 'dashboard'])->name('dashboard');
     Route::get('/jobs', [JobController::class, 'userJobs'])->name('jobs.index');
     Route::get('/salary', [SalaryController::class, 'userSalaries'])->name('salary.index');
@@ -65,5 +65,17 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+Route::middleware('auth')->get('/notifications', function () {
+    return response()->json([
+        'notifications' => auth()->user()->notifications()->take(20)->get(),
+        'unread_count' => auth()->user()->unreadNotifications()->count(),
+    ]);
+})->name('notifications.list');
+
+Route::middleware('auth')->post('/notifications/mark-all-read', function () {
+    auth()->user()->unreadNotifications->markAsRead();
+    return response()->json(['success' => true]);
+})->name('notifications.markAllRead');
 
 require __DIR__ . '/auth.php';

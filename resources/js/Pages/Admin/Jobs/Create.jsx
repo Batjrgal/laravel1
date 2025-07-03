@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Create({ auth, services, users }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -15,7 +16,14 @@ export default function Create({ auth, services, users }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("admin.jobs.store"));
+        post(route("admin.jobs.store"), {
+            onSuccess: () => {
+                message.success("Job created successfully!");
+            },
+            onError: () => {
+                message.error("Failed to create job. Please check the form.");
+            },
+        });
     };
 
     return (

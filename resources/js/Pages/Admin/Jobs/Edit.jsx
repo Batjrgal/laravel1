@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Edit({ auth, job, services, users }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -15,7 +16,14 @@ export default function Edit({ auth, job, services, users }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("admin.jobs.update", job.id));
+        put(route("admin.jobs.update", job.id), {
+            onSuccess: () => {
+                message.success("Job updated successfully!");
+            },
+            onError: () => {
+                message.error("Failed to update job. Please check the form.");
+            },
+        });
     };
 
     return (

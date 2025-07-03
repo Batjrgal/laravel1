@@ -1,8 +1,9 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import { Head, Link } from "@inertiajs/react";
 import { router } from "@inertiajs/react";
-import { Table, Tag, Button, Space } from "antd";
+import { Table, Tag, Button, Space, message } from "antd";
 import "antd/dist/reset.css";
+import ActionButtons from "@/Components/ActionButtons";
 
 export default function JobsIndex({ auth, jobs }) {
     const formatCurrency = (amount) => {
@@ -10,9 +11,14 @@ export default function JobsIndex({ auth, jobs }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm("Are you sure you want to delete this job?")) {
-            router.delete(route("admin.jobs.destroy", id));
-        }
+        router.delete(route("admin.jobs.destroy", id), {
+            onSuccess: () => {
+                message.success("Job deleted successfully!");
+            },
+            onError: () => {
+                message.error("Failed to delete job.");
+            },
+        });
     };
 
     const paymentFilters = [
@@ -98,31 +104,30 @@ export default function JobsIndex({ auth, jobs }) {
             ),
         },
         {
-            title: "Date",
+            title: "Created At",
             dataIndex: "created_at",
             key: "created_at",
-            render: (created_at) => new Date(created_at).toLocaleDateString(),
+            render: (created_at) =>
+                created_at ? new Date(created_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.created_at) - new Date(b.created_at),
+        },
+        {
+            title: "Updated At",
+            dataIndex: "updated_at",
+            key: "updated_at",
+            render: (updated_at) =>
+                updated_at ? new Date(updated_at).toLocaleDateString() : "-",
+            sorter: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
         },
         {
             title: "Actions",
             key: "actions",
             render: (_, job) => (
-                <Space>
-                    <Link
-                        href={route("admin.jobs.edit", job.id)}
-                        className="text-indigo-600 hover:text-indigo-900"
-                    >
-                        Edit
-                    </Link>
-                    <Button
-                        danger
-                        type="link"
-                        onClick={() => handleDelete(job.id)}
-                        style={{ padding: 0 }}
-                    >
-                        Delete
-                    </Button>
-                </Space>
+                <ActionButtons
+                    editHref={route("admin.jobs.edit", job.id)}
+                    onDelete={() => handleDelete(job.id)}
+                    deleteConfirm="Are you sure you want to delete this job?"
+                />
             ),
         },
     ];
@@ -172,6 +177,15 @@ export default function JobsIndex({ auth, jobs }) {
                                 }}
                                 locale={{ emptyText: "No jobs found." }}
                                 scroll={{ x: true }}
+                                bordered
+                                size="middle"
+                                rowClassName={(_, idx) =>
+                                    idx % 2 === 0
+                                        ? "bg-white hover:bg-blue-50 transition"
+                                        : "bg-gray-50 hover:bg-blue-50 transition"
+                                }
+                                className="rounded-lg shadow overflow-x-auto"
+                                sticky
                             />
                         </div>
                     </div>

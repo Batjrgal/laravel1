@@ -31,7 +31,7 @@ class UserManagementController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'phone' => 'nullable|integer',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|in:Admin, Employee',
+            'role' => 'required|in:Admin,Employee',
             'status' => 'required|in:Идэвхтэй,Идэвхгүй',
         ]);
 

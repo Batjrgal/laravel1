@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Create({ auth }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -14,7 +15,16 @@ export default function Create({ auth }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route("admin.services.store"));
+        post(route("admin.services.store"), {
+            onSuccess: () => {
+                message.success("Service created successfully!");
+            },
+            onError: () => {
+                message.error(
+                    "Failed to create service. Please check the form."
+                );
+            },
+        });
     };
 
     return (

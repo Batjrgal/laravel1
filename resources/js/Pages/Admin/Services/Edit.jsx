@@ -4,6 +4,7 @@ import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
 import TextInput from "@/Components/TextInput";
 import PrimaryButton from "@/Components/PrimaryButton";
+import { message } from "antd";
 
 export default function Edit({ auth, service }) {
     const { data, setData, put, processing, errors } = useForm({
@@ -14,7 +15,16 @@ export default function Edit({ auth, service }) {
 
     const submit = (e) => {
         e.preventDefault();
-        put(route("admin.services.update", service.id));
+        put(route("admin.services.update", service.id), {
+            onSuccess: () => {
+                message.success("Service updated successfully!");
+            },
+            onError: () => {
+                message.error(
+                    "Failed to update service. Please check the form."
+                );
+            },
+        });
     };
 
     return (

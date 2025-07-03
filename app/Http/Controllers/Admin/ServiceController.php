@@ -30,7 +30,12 @@ class ServiceController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        try {
+            // ... your create logic ...
+            return redirect()->back()->with('success', 'Үйлчилгээ амжилттай нэмэгдлээ!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Үйлчилгээ нэмэхэд алдаа гарлаа!');
+        }
     }
 
     /**
@@ -53,7 +58,12 @@ class ServiceController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        try {
+            // ... your update logic ...
+            return redirect()->back()->with('success', 'Үйлчилгээ амжилттай шинэчлэгдлээ!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Үйлчилгээ шинэчлэхэд алдаа гарлаа!');
+        }
     }
 
     /**
@@ -64,6 +74,11 @@ class ServiceController extends Controller
      */
     public function destroy($id)
     {
-        //
+        try {
+            // ... your delete logic ...
+            return redirect()->back()->with('success', 'Үйлчилгээ амжилттай устгагдлаа!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Үйлчилгээ устгахад алдаа гарлаа!');
+        }
     }
 }

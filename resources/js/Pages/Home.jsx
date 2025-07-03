@@ -1,7 +1,25 @@
 import { Head, Link } from "@inertiajs/react";
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import { Card, Row, Col, Button, Grid } from "antd";
+import "antd/dist/reset.css";
+import { useState } from "react";
 
 export default function Home({ auth, services }) {
+    const [expandedGroups, setExpandedGroups] = useState({});
+    const screens = Grid.useBreakpoint();
+
+    const getVisibleCount = () => {
+        if (screens.xs) return 3;
+        return 8;
+    };
+
+    const handleToggleGroup = (groupKey) => {
+        setExpandedGroups((prev) => ({
+            ...prev,
+            [groupKey]: !prev[groupKey],
+        }));
+    };
+
     return (
         <>
             <Head title="Car Wash Services" />
@@ -62,46 +80,83 @@ export default function Home({ auth, services }) {
 
                 <div className="space-y-12">
                     {Object.entries(services).map(
-                        ([serviceName, serviceGroup]) => (
-                            <div
-                                key={serviceName}
-                                className="bg-white rounded-2xl shadow-lg p-6"
-                            >
-                                <h3 className="text-2xl font-bold text-blue-600 mb-6 border-b pb-2">
-                                    {serviceName}
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {serviceGroup.map((service) => (
-                                        <div
-                                            key={service.id}
-                                            className="bg-gray-50 rounded-xl p-6 hover:shadow-md transition-all duration-300 border border-gray-100"
-                                        >
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
-                                                    {service.car_type}
-                                                </span>
-                                            </div>
-                                            <div className="flex flex-col justify-center items-center text-center">
-                                                <div className="text-2xl font-bold text-blue-600 mb-2">
-                                                    ₮
-                                                    {service.price.toLocaleString()}
-                                                </div>
-                                                <p className="text-gray-600 text-sm mb-4">
-                                                    {service.car_type} машин
-                                                </p>
-                                            </div>
-                                            {auth.user && (
-                                                <div className="mt-4">
-                                                    <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg font-semibold transition duration-200">
-                                                        Үйлчилгээ захиалах
-                                                    </button>
-                                                </div>
-                                            )}
+                        ([serviceName, serviceGroup]) => {
+                            const expanded = expandedGroups[serviceName];
+                            const visibleCount = getVisibleCount();
+                            const showToggle =
+                                serviceGroup.length > visibleCount;
+                            const visibleServices = expanded
+                                ? serviceGroup
+                                : serviceGroup.slice(0, visibleCount);
+                            return (
+                                <Card
+                                    key={serviceName}
+                                    title={serviceName}
+                                    className="mb-8 shadow-lg rounded-2xl"
+                                    headStyle={{
+                                        fontSize: 22,
+                                        fontWeight: "bold",
+                                        color: "#1677ff",
+                                    }}
+                                    bodyStyle={{ padding: 0 }}
+                                >
+                                    <Row gutter={[24, 24]} className="p-6">
+                                        {visibleServices.map((service) => (
+                                            <Col
+                                                key={service.id}
+                                                xs={24}
+                                                sm={12}
+                                                md={8}
+                                                lg={6}
+                                            >
+                                                <Card
+                                                    hoverable
+                                                    className="rounded-xl border border-gray-100 shadow-sm h-full"
+                                                    style={{ minHeight: 200 }}
+                                                    bodyStyle={{
+                                                        display: "flex",
+                                                        flexDirection: "column",
+                                                        alignItems: "center",
+                                                        justifyContent:
+                                                            "center",
+                                                        padding: 24,
+                                                    }}
+                                                >
+                                                    <div className="flex items-center justify-between w-full mb-2">
+                                                        <span className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
+                                                            {service.car_type}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-2xl font-bold text-blue-600 mb-1">
+                                                        ₮
+                                                        {service.price.toLocaleString()}
+                                                    </div>
+                                                    <p className="text-gray-600 text-sm mb-2">
+                                                        {service.car_type}
+                                                    </p>
+                                                </Card>
+                                            </Col>
+                                        ))}
+                                    </Row>
+                                    {showToggle && (
+                                        <div className="flex justify-center pb-6">
+                                            <Button
+                                                type="primary"
+                                                onClick={() =>
+                                                    handleToggleGroup(
+                                                        serviceName
+                                                    )
+                                                }
+                                            >
+                                                {expanded
+                                                    ? "Хураах"
+                                                    : "Үргэлжлүүлэх"}
+                                            </Button>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )
+                                    )}
+                                </Card>
+                            );
+                        }
                     )}
                 </div>
             </div>

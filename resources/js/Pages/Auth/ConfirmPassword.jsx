@@ -1,63 +1,74 @@
-import { useEffect } from 'react';
-import GuestLayout from '@/Layouts/GuestLayout';
-import InputError from '@/Components/InputError';
-import InputLabel from '@/Components/InputLabel';
-import PrimaryButton from '@/Components/PrimaryButton';
-import TextInput from '@/Components/TextInput';
-import { Head, useForm } from '@inertiajs/react';
+import { useEffect } from "react";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head } from "@inertiajs/react";
+import { Form, Input, Button, Typography, message } from "antd";
+
+const { Title } = Typography;
 
 export default function ConfirmPassword() {
-    const { data, setData, post, processing, errors, reset } = useForm({
-        password: '',
-    });
+    const [form] = Form.useForm();
 
     useEffect(() => {
         return () => {
-            reset('password');
+            form.resetFields(["password"]);
         };
     }, []);
 
-    const handleOnChange = (event) => {
-        setData(event.target.name, event.target.value);
-    };
-
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route('password.confirm'));
+    const submit = (values) => {
+        window.Inertia.post(route("password.confirm"), values, {
+            onSuccess: () => message.success("Password confirmed!"),
+        });
     };
 
     return (
         <GuestLayout>
             <Head title="Confirm Password" />
-
-            <div className="mb-4 text-sm text-gray-600">
-                This is a secure area of the application. Please confirm your password before continuing.
-            </div>
-
-            <form onSubmit={submit}>
-                <div className="mt-4">
-                    <InputLabel htmlFor="password" value="Password" />
-
-                    <TextInput
-                        id="password"
-                        type="password"
+            <div
+                style={{
+                    maxWidth: 400,
+                    margin: "40px auto",
+                    background: "#fff",
+                    padding: 32,
+                    borderRadius: 12,
+                    boxShadow: "0 2px 8px #f0f1f2",
+                }}
+            >
+                <Title level={2} style={{ textAlign: "center" }}>
+                    Confirm Password
+                </Title>
+                <div
+                    style={{
+                        marginBottom: 16,
+                        color: "#888",
+                        textAlign: "center",
+                    }}
+                >
+                    This is a secure area of the application. Please confirm
+                    your password before continuing.
+                </div>
+                <Form form={form} layout="vertical" onFinish={submit}>
+                    <Form.Item
+                        label="Password"
                         name="password"
-                        value={data.password}
-                        className="mt-1 block w-full"
-                        isFocused={true}
-                        onChange={handleOnChange}
-                    />
-
-                    <InputError message={errors.password} className="mt-2" />
-                </div>
-
-                <div className="flex items-center justify-end mt-4">
-                    <PrimaryButton className="ml-4" disabled={processing}>
-                        Confirm
-                    </PrimaryButton>
-                </div>
-            </form>
+                        rules={[
+                            {
+                                required: true,
+                                message: "Please enter your password",
+                            },
+                        ]}
+                    >
+                        <Input.Password
+                            placeholder="Password"
+                            autoComplete="current-password"
+                        />
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit" block>
+                            Confirm
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </div>
         </GuestLayout>
     );
 }
